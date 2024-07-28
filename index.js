@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import 'dotenv/config'
 import cors from 'cors';
 import cookieParser from "cookie-parser";
+import authRoutes from "./routes/AuthRoutes.js";
 
 
 const server = express();
@@ -17,7 +18,7 @@ server.use(cookieParser())
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
 
-
+server.use("/api/auth",authRoutes)
 server.listen(PORT, () => {
     console.log("Server is listening " + `http://localhost:${PORT}`)
 
