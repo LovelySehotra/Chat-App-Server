@@ -4,10 +4,13 @@ import 'dotenv/config'
 import cors from 'cors';
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/AuthRoutes.js";
+import { userDeserializer } from "./middleware/userDeserializer.js";
 
 
 const server = express();
 let PORT = process.env.PORT || 3000;
+server.use(express.json());
+server.use(express.urlencoded({ extended: true }));
 server.use(cors(
     {
         origin: [process.env.FRONTEND],
@@ -21,9 +24,8 @@ server.use(cors(
           ],
     }
 ))
+server.use(userDeserializer);
 server.use(cookieParser())
-server.use(express.json());
-server.use(express.urlencoded({ extended: true }));
 
 server.use("/api/auth",authRoutes)
 server.listen(PORT, () => {

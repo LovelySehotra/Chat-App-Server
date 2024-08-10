@@ -59,10 +59,8 @@ export const login = async (request, response) => {
 }
 export const getCurrentUser = async(request, response)=>{
     try {
-console.log(request.user)
-        // const id = request.User.id
-        // const user = await User.findById(id)
-        // return response.status(200).json({user})
+        const user = await User.findById(request.user._id)
+        return response.status(200).json({user})
     } catch (error) {
         console.log(error)
         response.status(500).send("Internal Server Error")
