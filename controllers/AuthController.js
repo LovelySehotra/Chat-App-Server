@@ -13,15 +13,17 @@ export const register = async (req, res, next) => {
         if (!email || !password) {
             return res.status(400).send("Email and Password is Required")
         }
+        const userExist = await User.findOne({ email: email })
+        if (userExist) throw new Error("User already register")
         const user = await User.create({ email, password });
-        res.cookie("jwt", createToken(email, user.id, { maxAge, secure: true, sameSize: "None" }))
+        const accessToken = createToken(email, user.id, { maxAge, secure: true, sameSize: "None" })
+        // res.cookie("jwt", createToken(email, user.id, { maxAge, secure: true, sameSize: "None" }))
         return res.status(201).json({
-            user: {
-                id: user.id,
-                email: user.email,
-                profileSetup: user.profileSetup
 
-            }
+            id: user.id,
+            email: user.email,
+            profileSetup: user.profileSetup,
+            accessToken
         })
     } catch (error) {
         console.log(error);
@@ -39,19 +41,31 @@ export const login = async (request, response) => {
         if (!user) return response.status(404).send("Email not found")
         const auth = await compare(password, user.password)
         if (!auth) return response.status(400).send("Password is incorrect.")
-        response.cookie("jwt", createToken(email, user.id, { maxAge, secure: true, sameSize: "None" }))
+            const accessToken = createToken(email, user.id, { maxAge, secure: true, sameSize: "None" })
         return response.status(201).json({
-            user: {
+            
                 id: user.id,
                 email: user.email,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                profileSetup: user.profileSetup
-
-            }
+                profileSetup: user.profileSetup,
+                accessToken
+            
         })
     } catch (error) {
         console.log(error);
         response.status(500).send("Internal Server Error")
     }
+}
+export const getCurrentUser = async(request, response)=>{
+    try {
+console.log(request.user)
+        // const id = request.User.id
+        // const user = await User.findById(id)
+        // return response.status(200).json({user})
+    } catch (error) {
+        console.log(error)
+        response.status(500).send("Internal Server Error")
+    }
+
 }

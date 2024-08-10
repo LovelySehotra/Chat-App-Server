@@ -11,7 +11,14 @@ let PORT = process.env.PORT || 3000;
 server.use(cors(
     {
         origin: [process.env.FRONTEND],
-        credentials: true
+        credentials: true,
+        allowedHeaders: [
+            "Origin",
+            "X-Requested-With",
+            "Content-Type",
+            "Accept",
+            "Authorization",
+          ],
     }
 ))
 server.use(cookieParser())
