@@ -7,23 +7,10 @@ import authRoutes from "./routes/AuthRoutes.js";
 import { userDeserializer } from "./middleware/userDeserializer.js";
 
 
-import { app, server } from "./socket/socket.js";
+import { app,server } from "./Socket/Socket.js";
 let PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// app.use(cors(
-//     {
-//         origin: [process.env.FRONTEND],
-//         credentials: true,
-//         allowedHeaders: [
-//             "Origin",
-//             "X-Requested-With",
-//             "Content-Type",
-//             "Accept",
-//             "Authorization",
-//           ],
-//     }
-// ))
 app.use(userDeserializer);
 app.use(cookieParser())
 
