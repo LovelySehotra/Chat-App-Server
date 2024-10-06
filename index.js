@@ -1,35 +1,35 @@
 import express from "express";
 import mongoose from "mongoose";
 import 'dotenv/config'
-import cors from 'cors';
+// import cors from 'cors';
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/AuthRoutes.js";
 import { userDeserializer } from "./middleware/userDeserializer.js";
 
 
-const server = express();
+import { app, server } from "./socket/socket.js";
 let PORT = process.env.PORT || 3000;
-server.use(express.json());
-server.use(express.urlencoded({ extended: true }));
-server.use(cors(
-    {
-        origin: [process.env.FRONTEND],
-        credentials: true,
-        allowedHeaders: [
-            "Origin",
-            "X-Requested-With",
-            "Content-Type",
-            "Accept",
-            "Authorization",
-          ],
-    }
-))
-server.use(userDeserializer);
-server.use(cookieParser())
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+// app.use(cors(
+//     {
+//         origin: [process.env.FRONTEND],
+//         credentials: true,
+//         allowedHeaders: [
+//             "Origin",
+//             "X-Requested-With",
+//             "Content-Type",
+//             "Accept",
+//             "Authorization",
+//           ],
+//     }
+// ))
+app.use(userDeserializer);
+app.use(cookieParser())
 
-server.use("/api/auth",authRoutes)
+app.use("/api/auth",authRoutes)
 server.listen(PORT, () => {
-    console.log("Server is listening " + `http://localhost:${PORT}`)
+    console.log("app is listening " + `http://localhost:${PORT}`)
 
 })
 
