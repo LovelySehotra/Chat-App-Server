@@ -1,5 +1,5 @@
-import User from "../models/UserModel.js";
 import jwt from "jsonwebtoken";
+import { User } from "../models/UserModel.js";
 
 
 export async function userDeserializer(

@@ -1,7 +1,8 @@
 import { request, response } from "express";
-import User from "../models/UserModel.js";
+
 import jwt from "jsonwebtoken";
 import { compare } from "bcrypt";
+import { User } from "../models/UserModel.js";
 
 let maxAge = 3 * 24 * 60 * 60 * 1000;
 const createToken = (email, userId) => {
