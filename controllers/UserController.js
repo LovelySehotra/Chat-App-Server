@@ -155,3 +155,24 @@ export const getProfileData = async (req, res) => {
         .status(200)
         .send({ ...user.toJSON(), isBlockedForUser, isBlockedForMe });
 }
+export const toggleBlockContact = async (req, res) => {
+    const { to, block } = req.body;
+    const userId = req.user._id;
+    try {
+        const user = await User.findById(userId);
+        if (block) {
+            user.profile.baseModelName.push(to);
+        } else {
+            user.profile.blockedUsers.splice(
+                user.profile.blockedUsers.indexOf(to), 1
+            )
+        }
+        const { socketId } = await User.findById(to);
+        io.to(socketId).emit("refreshBlockedUser", userId);
+        user.save();
+        return res.status(200).send({ success: true });
+    } catch (error) {
+        return res.status(500).send(error.message);
+    }
+
+}
