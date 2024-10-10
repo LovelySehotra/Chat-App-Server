@@ -1,6 +1,7 @@
 
 import mongoose from "mongoose";
 import  { Schema ,model} from  "mongoose";
+import bcrypt from "bcrypt"
 
 const userSchema =  new mongoose.Schema({
     email: {
@@ -14,7 +15,7 @@ const userSchema =  new mongoose.Schema({
     },
     fullName: {
         type: String,
-        required: false
+        required: true
     },
     profile: {
         privacy: {
@@ -71,6 +72,16 @@ const otpSchema = mongoose.Schema({
     otp: { type: String },
     createdAt: { type: Date, default: Date.now },
 });
+
+userSchema.pre('save', async function (next) {
+    // if password is not modified return next.
+    if (!this.isModified('password')) {
+        return next();
+    }
+    // if modified then encypt and add random character
+    this.password = await bcrypt.hash(this.password, 10);
+
+})
 export const User = mongoose.model("User", userSchema);
 
 

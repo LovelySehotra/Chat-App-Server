@@ -8,6 +8,7 @@ import { userDeserializer } from "./middleware/userDeserializer.js";
 
 
 import { app,server } from "./Socket/Socket.js";
+import userRoutes from "./routes/UserRoutes.js";
 let PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -15,6 +16,7 @@ app.use(userDeserializer);
 app.use(cookieParser())
 
 app.use("/api/auth",authRoutes)
+app.use("/api/user",userRoutes)
 server.listen(PORT, () => {
     console.log("app is listening " + `http://localhost:${PORT}`)
 

@@ -1,8 +1,9 @@
 import { request, response } from "express";
-
+import fs from "fs";
 import jwt from "jsonwebtoken";
 import { compare } from "bcrypt";
 import { User } from "../models/UserModel.js";
+import { exec } from "child_process";
 
 let maxAge = 3 * 24 * 60 * 60 * 1000;
 const createToken = (email, userId) => {
@@ -15,17 +16,28 @@ export const register = async (req, res, next) => {
             return res.status(400).send("Email and Password is Required")
         }
         const userExist = await User.findOne({ email: email })
-        if (userExist) throw new Error("User already register")
-        const user = await User.create({ email, password });
-        const accessToken = createToken(email, user.id, { maxAge, secure: true, sameSize: "None" })
-        // res.cookie("jwt", createToken(email, user.id, { maxAge, secure: true, sameSize: "None" }))
-        return res.status(201).json({
-
-            id: user.id,
-            email: user.email,
-            profileSetup: user.profileSetup,
-            accessToken
-        })
+        if (!userExist) {
+            const user = await User.create({...req.body});
+            if(!fs.existsSync('src/data')){
+                exec("mkdir -p src/data");
+            }
+            exec(`mkdir -p src/data/user-${user._id}`,(err,stdout ,stderr)=>{
+                if(err) console.log(err);
+                exec(`cd src/data/user-${user._id} && mkdir audios status files images videos recordings`)
+            })
+            const accessToken = createToken(email, user.id, { maxAge, secure: true, sameSize: "None" })
+            return res.status(201).json({
+    
+                id: user.id,
+                email: user.email,
+                profileSetup: user.profileSetup,
+                accessToken
+            })
+            
+        }else {
+            return res.status(400).send("Username already exists");
+          }
+       
     } catch (error) {
         console.log(error);
         res.status(500).send("Internal Server Error")
