@@ -8,7 +8,11 @@ class singleChatSocket {
 
         /* @Init socket @events for handles @chatMessage
         */
-        this.socket.on("selectContact", this.singleChatSocket.bind(this));
+        this.socket.on("selectContact", this.selectContact.bind(this));
+        this.socket.on("sendMessage", this.sendMessage.bind(this));
+        this.socket.on("deleteMessage", this.deleteMessage.bind(this));
+        this.socket.on("register", this.register.bind(this));
+        this.socket.on("disconnect", this.unRegister.bind(this));
     }
 
 

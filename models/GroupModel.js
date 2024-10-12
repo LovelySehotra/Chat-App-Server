@@ -6,7 +6,7 @@ const groupsSchema = new mongoose.Schema({
         description: { type: String },
     },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    groupAdmin: { type: mongoose.Schema.Types },
+    groupAdmin: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     groupMembers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     groupSetting: {
         private: { type: Boolean, default: true },
@@ -21,27 +21,32 @@ const groupsSchema = new mongoose.Schema({
     },
     avatar: { type: String },
     createdAt: { type: Date, default: Date.now },
-    message: {
-        file: {
-            type: {
-                type: String,
-            },
-            name: {
-                type: String,
-            },
-            size: {
-                type: Number,
-            },
-        },
-        text: {
-            type: String
-        },
-        links: [
-            {
-                type: String
+    messages: [
+        {
+            timestamp: { type: Date, default: Date.now },
+            message: {
+                file: {
+                    type: {
+                        type: String,
+                    },
+                    name: {
+                        type: String,
+                    },
+                    size: {
+                        type: Number,
+                    },
+                },
+                text: {
+                    type: String
+                },
+                links: [
+                    {
+                        type: String
+                    }
+                ]
             }
-        ]
-    },
+        }
+    ],
     sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     replyMessage: {
         to: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
