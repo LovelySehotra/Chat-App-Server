@@ -325,7 +325,7 @@ export const groupCreate =async(req,res)=>{
             })
             exec(
                 `cd src/data/group-${group._id} && mkdir audios files images videos recordings`
-              );
+              );    
               const filepathWithNewName = path.join(
                 __dirname,
                 `../data/group-${group._id}`,
@@ -343,3 +343,26 @@ export const groupCreate =async(req,res)=>{
         }
     })
 }
+export const groupUpdate = async (req, res) => {
+    const { userId } = req;
+    const { groupId, update } = req.body;
+  
+    const isEditable = await groups.findOne({ _id: groupId, createdBy: userId });
+    if (!isEditable?._id) return res.status(403).send("you can't edit");
+  
+    if (update.operation === "addMember") {
+      const group = await groups.findById({ _id: groupId });
+      group.groupMembers.push(update.data);
+      group.save();
+      return res.status(200).send({ message: "Member added" });
+    }
+  
+    if (update.operation === "deleteMember") {
+      const group = await groups.findById({ _id: groupId });
+      group.groupMembers = group.groupMembers.filter(
+        (member) => member.toString() !== update.data
+      );
+      group.save();
+      return res.status(200).send({ message: "Member deleted" });
+    }
+  };
