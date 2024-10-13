@@ -284,85 +284,149 @@ export const groupSearch = async (req, res) => {
     }
 }
 export const groupJoin = async (req, res) => {
-   try {
-     const { userId } = req.user;
-     const { groupId } = req.body;
-     const group = await Groups.findById({ _id: groupId });
-     if (group.createdAt.toString() === userId) {
-         return res.status(406).send("You can't join your own group");
- 
-     }
-     if (group.groupMembers.includes(userId)) {
-         return res.status(406).send("Already Joined");
-     }
-     await group.findByIdAndUpdate({
-         _id: groupId,
-     },
-         {
-             $push: {
-                 groupMembers: userId
-             },
-         })
-         return res.status(200).send("Joined");
-   } catch (error) {
-    return res.status(406).send(error?.message);
-   }
+    try {
+        const { userId } = req.user;
+        const { groupId } = req.body;
+        const group = await Groups.findById({ _id: groupId });
+        if (group.createdAt.toString() === userId) {
+            return res.status(406).send("You can't join your own group");
+
+        }
+        if (group.groupMembers.includes(userId)) {
+            return res.status(406).send("Already Joined");
+        }
+        await group.findByIdAndUpdate({
+            _id: groupId,
+        },
+            {
+                $push: {
+                    groupMembers: userId
+                },
+            })
+        return res.status(200).send("Joined");
+    } catch (error) {
+        return res.status(406).send(error?.message);
+    }
 }
-export const groupCreate =async(req,res)=>{
+export const groupCreate = async (req, res) => {
     const userId = req.user._id;
     const upload = multer().any();
-    upload(req,res,async(err)=>{
+    upload(req, res, async (err) => {
         try {
-            const { groupDetails,groupMembers}= req.body;
-            const { files} = req;
+            const { groupDetails, groupMembers } = req.body;
+            const { files } = req;
             const group = await Groups.create({
                 groupDetails,
                 groupMembers,
-                createdBy:userId,
+                createdBy: userId,
             })
-            fs.mkdirSync(`src/data/group=${group._id}`,{recursive:true},(err)=>{
-                if(err) console.log(err);
+            fs.mkdirSync(`src/data/group=${group._id}`, { recursive: true }, (err) => {
+                if (err) console.log(err);
             })
             exec(
                 `cd src/data/group-${group._id} && mkdir audios files images videos recordings`
-              );    
-              const filepathWithNewName = path.join(
+            );
+            const filepathWithNewName = path.join(
                 __dirname,
                 `../data/group-${group._id}`,
                 "Avatar.jpg"
-              );
-        
-              fs.writeFile(filepathWithNewName, files[0].buffer, (err) => {
+            );
+
+            fs.writeFile(filepathWithNewName, files[0].buffer, (err) => {
                 if (err) console.log(err);
-              });
-              return res.status(200).send({ success: true });
+            });
+            return res.status(200).send({ success: true });
         } catch (error) {
             if (error.code === 11000) {
                 return res.status(406).send("Group with same name exists");
-              }
+            }
         }
     })
 }
 export const groupUpdate = async (req, res) => {
     const { userId } = req;
     const { groupId, update } = req.body;
-  
+
     const isEditable = await groups.findOne({ _id: groupId, createdBy: userId });
     if (!isEditable?._id) return res.status(403).send("you can't edit");
-  
+
     if (update.operation === "addMember") {
-      const group = await groups.findById({ _id: groupId });
-      group.groupMembers.push(update.data);
-      group.save();
-      return res.status(200).send({ message: "Member added" });
+        const group = await groups.findById({ _id: groupId });
+        group.groupMembers.push(update.data);
+        group.save();
+        return res.status(200).send({ message: "Member added" });
     }
-  
+
     if (update.operation === "deleteMember") {
+        const group = await groups.findById({ _id: groupId });
+        group.groupMembers = group.groupMembers.filter(
+            (member) => member.toString() !== update.data
+        );
+        group.save();
+        return res.status(200).send({ message: "Member deleted" });
+    }
+};
+export const groupClearChat = async (req, res) => {
+    const userId = req.user._id;
+    const { groupId } = req.body;
+    try {
+        const group = await Groups.find({ _id: groupId });
+        if (group.createdBy.toString() === userId) {
+            await Groups.findByIdAndUpdate({
+                _id: groupId,
+            },
+                {
+                    $set: {
+                        messages: [],
+                    },
+                })
+            exec(`cd src/data/group-${groupId} && audios files images videos recordings`)
+            group.groupMembers.map(async (member) => {
+                const user = await User.findById(member.toString());
+                console.log(user._id);
+                user.files = user.files.filter((file) => file.id != groupId);
+                await user.save();
+            })
+            return res.status(200).send({ success: true });
+        } else {
+            return res.status(406).send("You can't clear chat");
+        }
+
+    } catch (error) {
+        return res.status(406).send(error);
+    }
+}
+export const groupDelete = async (req, res) => {
+    const userId = req.user._id;
+    const { groupId } = req.body;
+    try {
+        const group = await Groups.findById({ _id: groupId });
+        if (group.createdBy.toString() === userId) {
+            await Groups.findByIdAndDelete({ _id: groupId });
+            exec(`cd src/data && rm -rf group-${groupId}`);
+            return res.status(200).send({ success: true });
+        } else {
+            return res.status(406).send("You can't delete this group");
+        }
+    } catch (error) {
+        return res.status(406).send(error);
+    }
+}
+export const groupExit = async (req, res) => {
+    const { userId } = req;
+  
+    try {
+      const { groupId } = req.body;
       const group = await groups.findById({ _id: groupId });
-      group.groupMembers = group.groupMembers.filter(
-        (member) => member.toString() !== update.data
-      );
-      group.save();
-      return res.status(200).send({ message: "Member deleted" });
+      if (group.groupMembers.includes(userId)) {
+        group.groupMembers = group.groupMembers.filter(
+          (member) => member.toString() !== userId
+        );
+        await group.save();
+  
+        return res.status(200).send({ success: true });
+      }
+    } catch (error) {
+      return res.status(406).send(error);
     }
   };
